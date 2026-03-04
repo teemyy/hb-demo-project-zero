@@ -1,15 +1,20 @@
-param virtualNetworks_vnet_hub_prod_01_name string
 
-resource virtualNetworks_vnet_hub_prod_01_name_resource 'Microsoft.Network/virtualNetworks@2024-07-01' = {
-  name: virtualNetworks_vnet_hub_prod_01_name
-  location: 'swedencentral'
+param vnetName string
+param vnetAddressPrefix string
+param subnetName string
+param subnetAddressPrefix string
+param location string = resourceGroup().location // Defaults to the RG's location
+
+resource vnetName_resource 'Microsoft.Network/virtualNetworks@2024-07-01' = {
+  name: vnetName
+  location: location
   tags: {
     hub: 'prod'
   }
   properties: {
     addressSpace: {
       addressPrefixes: [
-        '10.30.0.0/16'
+        vnetAddressPrefix
       ]
     }
     encryption: {
@@ -19,11 +24,10 @@ resource virtualNetworks_vnet_hub_prod_01_name_resource 'Microsoft.Network/virtu
     privateEndpointVNetPolicies: 'Disabled'
     subnets: [
       {
-        name: 'default'
-        id: virtualNetworks_vnet_hub_prod_01_name_default.id
+        name: subnetName
         properties: {
           addressPrefixes: [
-            '10.30.0.0/24'
+            subnetAddressPrefix
           ]
           delegations: []
           privateEndpointNetworkPolicies: 'Disabled'
@@ -36,18 +40,4 @@ resource virtualNetworks_vnet_hub_prod_01_name_resource 'Microsoft.Network/virtu
     enableDdosProtection: false
   }
 }
-
-resource virtualNetworks_vnet_hub_prod_01_name_default 'Microsoft.Network/virtualNetworks/subnets@2024-07-01' = {
-  name: '${virtualNetworks_vnet_hub_prod_01_name}/default'
-  properties: {
-    addressPrefixes: [
-      '10.30.0.0/24'
-    ]
-    delegations: []
-    privateEndpointNetworkPolicies: 'Disabled'
-    privateLinkServiceNetworkPolicies: 'Enabled'
-  }
-  dependsOn: [
-    virtualNetworks_vnet_hub_prod_01_name_resource
-  ]
-}
+output vnetId string = vnetName_resource.id
