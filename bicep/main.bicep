@@ -30,7 +30,8 @@ module hubVnet './modules/vnet.bicep' = {
   }
 }
 
-module hubToSpoke1 './modules/peerings.bicep' = {
+//peering for hubTospoke1
+module hubToSpoke1 './modules/peering.bicep' = {
   name: 'hub-to-spoke1-peering'
   scope: resourceGroup(rgHub.name) 
   params: {
@@ -39,8 +40,8 @@ module hubToSpoke1 './modules/peerings.bicep' = {
     peeringName: 'peer-hub-to-spoke01'
   }
 }
-
-module hubToSpoke2 './modules/peerings.bicep' = {
+//peering for hubTospoke2
+module hubToSpoke2 './modules/peering.bicep' = {
   name: 'hub-to-spoke2-peering'
   scope: resourceGroup(rgHub.name) 
   params: {
@@ -70,7 +71,7 @@ module spokeVnet1 './modules/vnet.bicep' = {
 }
 
 //peering for spoke1
-module Spoke1toHub './modules/peerings.bicep' = {
+module Spoke1toHub './modules/peering.bicep' = {
   name: 'spoke01-to-hub-peering'
   scope: resourceGroup(rgSpoke1.name) 
   params: {
@@ -92,7 +93,7 @@ module spokeVnet2 './modules/vnet.bicep' = {
   }
 }
 //peering for spoke2
-module spoke2toHub './modules/peerings.bicep' = {
+module spoke2toHub './modules/peering.bicep' = {
   name: 'spoke02-to-hub-peering'
   scope: resourceGroup(rgSpoke2.name) 
   params: {
