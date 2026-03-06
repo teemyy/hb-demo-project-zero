@@ -25,17 +25,31 @@ module hubVnet './modules/vnet.bicep' = {
   params: {
     vnetName: 'vnet-hub-prod-01'
     vnetAddressPrefix: '10.30.0.0/16'
-    subnetName: 'subnet-hub-prod-01'
-    subnetAddressPrefix: '10.30.0.0/24'
+    
+     subnets: [
+      {
+        name: 'GatewaySubnet' // DO NOT CHANGE THIS NAME
+        addressPrefix: '10.30.0.0/27'
+      }
+      {
+        name: 'FortiGateSubnet'
+        addressPrefix: '10.30.1.0/24'
+      }
+      {
+    name: 'subnet-hub-prod-01'
+    addressPrefix: '10.30.2.0/24'
+     }
+   ]} 
   }
-}
+  
+
 
 //peering for hubTospoke1
 module hubToSpoke1 './modules/peering.bicep' = {
   name: 'hub-to-spoke1-peering'
   scope: resourceGroup(rgHub.name) 
   params: {
-    localVnetName: 'vnet-hub-prod-01'
+    localVnetName: hubVnet.outputs.vnetName
     remoteVnetId: spokeVnet1.outputs.vnetId
     peeringName: 'peer-hub-to-spoke01'
   }
@@ -45,7 +59,7 @@ module hubToSpoke2 './modules/peering.bicep' = {
   name: 'hub-to-spoke2-peering'
   scope: resourceGroup(rgHub.name) 
   params: {
-    localVnetName: 'vnet-hub-prod-01'
+    localVnetName: hubVnet.outputs.vnetName
     remoteVnetId: spokeVnet2.outputs.vnetId
     peeringName: 'peer-hub-to-spoke02'
   }
@@ -65,8 +79,12 @@ module spokeVnet1 './modules/vnet.bicep' = {
   params: {
     vnetName: 'vnet-spoke-prod-01'
     vnetAddressPrefix: '10.31.0.0/16'
-    subnetName: 'subnet-spoke-prod-01'
-    subnetAddressPrefix: '10.31.0.0/24'
+    subnets: [
+    {
+      name: 'subnet-spoke-prod-01'
+      addressPrefix: '10.31.0.0/24'
+    }
+  ] 
   }
 }
 
@@ -75,7 +93,7 @@ module Spoke1toHub './modules/peering.bicep' = {
   name: 'spoke01-to-hub-peering'
   scope: resourceGroup(rgSpoke1.name) 
   params: {
-    localVnetName: 'vnet-spoke-prod-01'
+    localVnetName: spokeVnet1.outputs.vnetName
     remoteVnetId: hubVnet.outputs.vnetId
     peeringName: 'peer-spoke01-to-hub'
   }
@@ -88,8 +106,12 @@ module spokeVnet2 './modules/vnet.bicep' = {
   params: {
     vnetName: 'vnet-spoke-prod-02'
     vnetAddressPrefix: '10.32.0.0/16'
-    subnetName: 'subnet-spoke-prod-02'
-    subnetAddressPrefix: '10.32.0.0/24'
+   subnets: [
+    {
+      name: 'subnet-spoke-prod-02'
+      addressPrefix: '10.32.0.0/24'
+    }
+  ] 
   }
 }
 //peering for spoke2
@@ -97,7 +119,7 @@ module spoke2toHub './modules/peering.bicep' = {
   name: 'spoke02-to-hub-peering'
   scope: resourceGroup(rgSpoke2.name) 
   params: {
-    localVnetName: 'vnet-spoke-prod-02'
+    localVnetName: spokeVnet2.outputs.vnetName
     remoteVnetId: hubVnet.outputs.vnetId
     peeringName: 'peer-spoke02-to-hub'
   }
