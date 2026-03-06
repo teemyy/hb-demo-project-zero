@@ -1,5 +1,9 @@
 targetScope = 'subscription'
 param location string = 'swedencentral'
+
+@secure()
+param adminPassword string
+
 //deployment command->  az deployment sub create --location swedencentral --template-file main.bicep
 
 // 1. Define the RGs
@@ -85,6 +89,17 @@ module spokeVnet1 './modules/vnet.bicep' = {
       addressPrefix: '10.31.0.0/24'
     }
   ] 
+  }
+}
+
+module spoke1VM './modules/vm.bicep' = {
+  name: 'spoke1VMDeployment'
+  scope: resourceGroup(rgSpoke1.name)
+  params: {
+    vmName: 'vm-spoke1-prod-01'
+    subnetId: spokeVnet1.outputs.subnetRefs[0].id 
+    adminUsername: 'azureuser'
+    adminPassword: adminPassword
   }
 }
 
