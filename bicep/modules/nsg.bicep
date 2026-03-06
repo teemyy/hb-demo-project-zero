@@ -45,6 +45,21 @@ resource nsg 'Microsoft.Network/networkSecurityGroups@2024-01-01' = {
           destinationPortRange: '25565'          // Minecraft default port
         }
       }
+      
+{
+        name: 'Allow-Minecraft-from-VPN-def2'
+        properties: {
+          priority: 130
+          direction: 'Inbound'
+          access: 'Allow'
+          protocol: 'Udp'
+          sourceAddressPrefix: '172.16.0.0/24'  // only VPN clients
+          sourcePortRange: '*'
+          destinationAddressPrefix: '*'
+          destinationPortRange: '19132'          // Minecraft default port
+        }
+      }
+
       {
         name: 'Deny-All-Inbound'
         properties: {
