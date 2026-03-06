@@ -1,6 +1,8 @@
 param localVnetName string
 param remoteVnetId string
 param peeringName string
+param allowGatewayTransit bool = false
+param useRemoteGateways bool = false    
 
 
 resource peering 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@2020-07-01' = {
@@ -8,8 +10,8 @@ resource peering 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@2020-
   properties: {
     allowVirtualNetworkAccess: true
     allowForwardedTraffic: true
-    allowGatewayTransit: false
-    useRemoteGateways: false
+    allowGatewayTransit: allowGatewayTransit
+    useRemoteGateways: useRemoteGateways
     remoteVirtualNetwork: {
        id: remoteVnetId
     }

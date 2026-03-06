@@ -56,6 +56,7 @@ module hubToSpoke1 './modules/peering.bicep' = {
     localVnetName: hubVnet.outputs.vnetName
     remoteVnetId: spokeVnet1.outputs.vnetId
     peeringName: 'peer-hub-to-spoke01'
+     allowGatewayTransit: true
   }
 }
 //peering for hubTospoke2
@@ -66,6 +67,7 @@ module hubToSpoke2 './modules/peering.bicep' = {
     localVnetName: hubVnet.outputs.vnetName
     remoteVnetId: spokeVnet2.outputs.vnetId
     peeringName: 'peer-hub-to-spoke02'
+    allowGatewayTransit: true
   }
 
   // This ensures Hub is only updated by one peering at a time
@@ -93,6 +95,7 @@ module spokeVnet1 './modules/vnet.bicep' = {
   }
 }
 
+//vm for spoke1
 module spoke1VM './modules/vm.bicep' = {
   name: 'spoke1VMDeployment'
   scope: resourceGroup(rgSpoke1.name)
@@ -112,7 +115,9 @@ module Spoke1toHub './modules/peering.bicep' = {
     localVnetName: spokeVnet1.outputs.vnetName
     remoteVnetId: hubVnet.outputs.vnetId
     peeringName: 'peer-spoke01-to-hub'
+    useRemoteGateways: true
   }
+  dependsOn: [hubToSpoke1]
 }
 
 // NSG for Spoke1
@@ -147,5 +152,7 @@ module spoke2toHub './modules/peering.bicep' = {
     localVnetName: spokeVnet2.outputs.vnetName
     remoteVnetId: hubVnet.outputs.vnetId
     peeringName: 'peer-spoke02-to-hub'
+    useRemoteGateways: true      
   }
+  dependsOn: [hubToSpoke2]
 }
