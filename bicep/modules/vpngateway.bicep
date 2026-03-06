@@ -27,9 +27,6 @@ resource vnetName_resource 'Microsoft.Network/virtualNetworks@2024-07-01' = {
           addressPrefixes: [
             subnet.addressPrefix
           ]
-          networkSecurityGroup: subnet.nsgId != null ? {
-          id: subnet.nsgId        // ← attach NSG if provided
-           } : null
           delegations: []
           privateEndpointNetworkPolicies: 'Disabled'
           privateLinkServiceNetworkPolicies: 'Enabled'

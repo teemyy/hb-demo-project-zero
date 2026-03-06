@@ -36,7 +36,7 @@ module hubVnet './modules/vnet.bicep' = {
         addressPrefix: '10.30.0.0/27'
       }
       {
-        name: 'FortiGateSubnet'
+        name: 'AzureFirewallSubnet'
         addressPrefix: '10.30.1.0/24'
       }
       {
@@ -87,6 +87,7 @@ module spokeVnet1 './modules/vnet.bicep' = {
     {
       name: 'subnet-spoke-prod-01'
       addressPrefix: '10.31.0.0/24'
+      nsgId: spoke1NSG.outputs.nsgId
     }
   ] 
   }
@@ -111,6 +112,15 @@ module Spoke1toHub './modules/peering.bicep' = {
     localVnetName: spokeVnet1.outputs.vnetName
     remoteVnetId: hubVnet.outputs.vnetId
     peeringName: 'peer-spoke01-to-hub'
+  }
+}
+
+// NSG for Spoke1
+module spoke1NSG './modules/nsg.bicep' = {
+  name: 'spoke1NSGDeployment'
+  scope: resourceGroup(rgSpoke1.name)
+  params: {
+    nsgName: 'nsg-spoke-prod-01'
   }
 }
 

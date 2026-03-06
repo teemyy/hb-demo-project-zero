@@ -45,7 +45,7 @@ resource vm 'Microsoft.Compute/virtualMachines@2024-03-01' = {
   location: location
   properties: {
     hardwareProfile: {
-      vmSize: 'Standard_B2s'   // ← 2 vCPU, 4GB RAM
+      vmSize: 'Standard_D2as_v5'   // ← 2 vCPU, 8GB RAM
     }
     osProfile: {
       computerName: vmName
