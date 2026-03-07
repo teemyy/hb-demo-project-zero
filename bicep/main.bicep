@@ -4,6 +4,7 @@ param location string = 'swedencentral'
 @secure()
 param adminPassword string
 
+
 //deployment command->  az deployment sub create --location swedencentral --template-file main.bicep
 
 // 1. Define the RGs
@@ -43,6 +44,11 @@ module hubVnet './modules/vnet.bicep' = {
     name: 'subnet-hub-prod-01'
     addressPrefix: '10.30.2.0/24'
      }
+{
+    name: 'AzureFirewallManagementSubnet'
+    addressPrefix: '10.30.3.0/26'
+     }
+     
    ]} 
   }
   
@@ -77,6 +83,27 @@ module hubToSpoke2 './modules/peering.bicep' = {
 
 }
 
+module hubFirewall './modules/firewall.bicep' = {
+  name: 'hubFirewallDeployment'
+  scope: resourceGroup(rgHub.name)
+  params: {
+    firewallName: 'fw-hub-prod-01'
+    publicIpName: 'pip-fw-hub-prod-01'
+    managementPublicIpName: 'pip-fw-mgmt-hub-prod-01'
+    vnetName: 'vnet-hub-prod-01'
+    vnetResourceGroup: rgHub.name
+    minecraftVmPrivateIp: '10.31.0.4'
+  }
+}
+
+// NSG for Spoke1
+module spoke1NSG './modules/nsg.bicep' = {
+  name: 'spoke1NSGDeployment'
+  scope: resourceGroup(rgSpoke1.name)
+  params: {
+    nsgName: 'nsg-spoke-prod-01'
+  }
+}
 
 //module for spoke1 vnet
 module spokeVnet1 './modules/vnet.bicep' = {
@@ -120,14 +147,7 @@ module Spoke1toHub './modules/peering.bicep' = {
   dependsOn: [hubToSpoke1]
 }
 
-// NSG for Spoke1
-module spoke1NSG './modules/nsg.bicep' = {
-  name: 'spoke1NSGDeployment'
-  scope: resourceGroup(rgSpoke1.name)
-  params: {
-    nsgName: 'nsg-spoke-prod-01'
-  }
-}
+
 
 //module for spoke2 vnet
 module spokeVnet2 './modules/vnet.bicep' = {
@@ -156,3 +176,5 @@ module spoke2toHub './modules/peering.bicep' = {
   }
   dependsOn: [hubToSpoke2]
 }
+
+

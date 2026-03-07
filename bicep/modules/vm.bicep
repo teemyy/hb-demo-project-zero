@@ -7,17 +7,17 @@ param adminUsername string
 param adminPassword string
 
 
-resource publicIp 'Microsoft.Network/publicIPAddresses@2024-01-01' = {
+//resource publicIp 'Microsoft.Network/publicIPAddresses@2024-01-01' = {
   
-   name: '${vmName}-pip'
-  location: location
-  sku: {
-    name: 'Standard'
-  }
-  properties: {
-    publicIPAllocationMethod: 'Static'  
-  }
-}
+//   name: '${vmName}-pip'
+//  location: location
+//  sku: {
+//    name: 'Standard'
+//  }
+ // properties: {
+ //   publicIPAllocationMethod: 'Static'  
+ // }
+//}
 
 resource nic 'Microsoft.Network/networkInterfaces@2024-01-01' = {
   name: '${vmName}-nic'
@@ -31,9 +31,9 @@ resource nic 'Microsoft.Network/networkInterfaces@2024-01-01' = {
             id: subnetId         // plugs into Spoke1's subnet
           }
           privateIPAllocationMethod: 'Dynamic'
-          publicIPAddress: {
-            id: publicIp.id      // attaches the public IP
-          }
+        //  publicIPAddress: {
+         //   id: publicIp.id      // attaches the public IP
+        //  }
         }
       }
     ]
@@ -95,4 +95,4 @@ resource autoShutdown 'Microsoft.DevTestLab/schedules@2018-09-15' = {
 }
 
 output vmName string = vm.name
-output publicIpAddress string = publicIp.properties.ipAddress
+

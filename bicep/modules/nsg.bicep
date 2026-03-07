@@ -60,6 +60,20 @@ resource nsg 'Microsoft.Network/networkSecurityGroups@2024-01-01' = {
         }
       }
 
+  {
+       name: 'Allow-Minecraft-from-Firewall'
+       properties: {
+       priority: 140
+       direction: 'Inbound'
+       access: 'Allow'
+      protocol: 'Tcp'
+     sourceAddressPrefix: '10.30.1.0/24'  //  AzureFirewallSubnet
+     sourcePortRange: '*'
+     destinationAddressPrefix: '*'
+     destinationPortRange: '25565'
+  }
+}
+
       {
         name: 'Deny-All-Inbound'
         properties: {
