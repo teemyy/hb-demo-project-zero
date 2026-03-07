@@ -1,46 +1,32 @@
-param vnetName string
-param vnetAddressPrefix string
-param location string = resourceGroup().location // Defaults to the RG's location
-param subnets array = []
+param routeTableName string
+param location string = resourceGroup().location
+param firewallPrivateIp string
 
-resource vnetName_resource 'Microsoft.Network/virtualNetworks@2024-07-01' = {
-  name: vnetName
+resource routeTable 'Microsoft.Network/routeTables@2024-01-01' = {
+  name: routeTableName
   location: location
-  tags: {
-    hub: 'prod'
-  }
   properties: {
-    addressSpace: {
-      addressPrefixes: [
-        vnetAddressPrefix
-      ]
-    }
-    encryption: {
-      enabled: false
-      enforcement: 'AllowUnencrypted'
-    }
-    privateEndpointVNetPolicies: 'Disabled'
-
-    subnets: [for subnet in subnets: {
-        name: subnet.name
+    disableBgpRoutePropagation: true  // ← prevents VPN gateway routes
+                                      //   overriding our custom routes
+    routes: [
+      {
+        name: 'route-to-firewall'
         properties: {
-          addressPrefixes: [
-            subnet.addressPrefix
-          ]
-           networkSecurityGroup: contains(subnet, 'nsgId') ? {
-           id: subnet.nsgId        
-         } : null
-          delegations: []
-          privateEndpointNetworkPolicies: 'Disabled'
-          privateLinkServiceNetworkPolicies: 'Enabled'
+          addressPrefix: '0.0.0.0/0'         // ← all traffic
+          nextHopType: 'VirtualAppliance'    // ← send to specific IP
+          nextHopIpAddress: firewallPrivateIp // ← firewall private IP
         }
-        type: 'Microsoft.Network/virtualNetworks/subnets'
+        
       }
+      {
+    name: 'route-vpn-clients'          //routing for vpn clients
+    properties: {
+      addressPrefix: '172.16.0.0/24'   // vpn pool
+      nextHopType: 'VirtualNetworkGateway'  //go via VPN gateway directly
+    }
+    }
     ]
-    virtualNetworkPeerings: []
-    enableDdosProtection: false
   }
 }
-output vnetId string = vnetName_resource.id
-output vnetName string = vnetName_resource.name
-output subnetRefs array = vnetName_resource.properties.subnets
+
+output routeTableId string = routeTable.id

@@ -56,6 +56,35 @@ resource dnatRuleCollection 'Microsoft.Network/firewallPolicies/ruleCollectionGr
           }
         ]
       }
+      {
+           ruleCollectionType: 'FirewallPolicyFilterRuleCollection'
+            name: 'minecraft-network-rules'
+            priority: 200
+            action: {
+          type: 'Allow'
+        }
+        rules: [
+                  {
+          ruleType: 'NetworkRule'
+          name: 'allow-minecraft-to-spoke1'
+          ipProtocols: ['TCP']
+          sourceAddresses: ['*']
+          destinationAddresses: ['10.31.0.4']
+          destinationPorts: ['25565']
+    }
+                 {
+          ruleType: 'NetworkRule'
+          name: 'allow-ssh-from-vpn'
+          ipProtocols: ['TCP']
+          sourceAddresses: ['172.16.0.0/24']   // ← VPN clients
+          destinationAddresses: ['10.31.0.4']  // ← Spoke1 VM
+          destinationPorts: ['22']             // ← SSH
+    }
+
+  ]
+}
+
+
     ]
   }
 }

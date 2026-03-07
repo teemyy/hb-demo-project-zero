@@ -30,6 +30,10 @@ resource vnetName_resource 'Microsoft.Network/virtualNetworks@2024-07-01' = {
            networkSecurityGroup: contains(subnet, 'nsgId') ? {
            id: subnet.nsgId        
          } : null
+
+          routeTable: contains(subnet, 'routeTableId') ? {
+          id: subnet.routeTableId
+        } : null
           delegations: []
           privateEndpointNetworkPolicies: 'Disabled'
           privateLinkServiceNetworkPolicies: 'Enabled'

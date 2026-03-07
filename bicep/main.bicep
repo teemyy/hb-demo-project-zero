@@ -77,9 +77,7 @@ module hubToSpoke2 './modules/peering.bicep' = {
   }
 
   // This ensures Hub is only updated by one peering at a time
-  dependsOn: [
-    hubToSpoke1
-  ]
+  dependsOn: [hubToSpoke1 ]
 
 }
 
@@ -94,6 +92,7 @@ module hubFirewall './modules/firewall.bicep' = {
     vnetResourceGroup: rgHub.name
     minecraftVmPrivateIp: '10.31.0.4'
   }
+  dependsOn: [hubVnet]
 }
 
 // NSG for Spoke1
@@ -102,6 +101,16 @@ module spoke1NSG './modules/nsg.bicep' = {
   scope: resourceGroup(rgSpoke1.name)
   params: {
     nsgName: 'nsg-spoke-prod-01'
+  }
+}
+
+// Route table for Spoke1
+module spoke1RouteTable './modules/udr.bicep' = {
+  name: 'spoke1RouteTableDeployment'
+  scope: resourceGroup(rgSpoke1.name)
+  params: {
+    routeTableName: 'rt-spoke-prod-01'
+    firewallPrivateIp: hubFirewall.outputs.firewallPrivateIp
   }
 }
 
@@ -117,6 +126,7 @@ module spokeVnet1 './modules/vnet.bicep' = {
       name: 'subnet-spoke-prod-01'
       addressPrefix: '10.31.0.0/24'
       nsgId: spoke1NSG.outputs.nsgId
+      routeTableId: spoke1RouteTable.outputs.routeTableId
     }
   ] 
   }
@@ -146,6 +156,7 @@ module Spoke1toHub './modules/peering.bicep' = {
   }
   dependsOn: [hubToSpoke1]
 }
+
 
 
 
