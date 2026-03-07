@@ -23,6 +23,17 @@ resource rgSpoke2 'Microsoft.Resources/resourceGroups@2023-07-01' = {
   location: location
 }
 
+// Gateway Route Table — must exist before hub VNet
+module gatewayRouteTable './modules/udr-vpngw.bicep' = {
+  name: 'gatewayRouteTableDeployment'
+  scope: resourceGroup(rgHub.name)
+  params: {
+    routeTableName: 'rt-hub-gateway-prod-01'
+    firewallPrivateIp: '10.30.1.4'
+  }
+  dependsOn: [rgHub]
+}
+
 //module for hub vnet
 module hubVnet './modules/vnet.bicep' = {
   name: 'hubVnetDeployment1'
@@ -35,6 +46,7 @@ module hubVnet './modules/vnet.bicep' = {
       {
         name: 'GatewaySubnet' // DO NOT CHANGE THIS NAME
         addressPrefix: '10.30.0.0/27'
+        routeTableId: gatewayRouteTable.outputs.routeTableId
       }
       {
         name: 'AzureFirewallSubnet'
@@ -50,6 +62,7 @@ module hubVnet './modules/vnet.bicep' = {
      }
      
    ]} 
+   dependsOn: [gatewayRouteTable]
   }
   
 
@@ -64,6 +77,7 @@ module hubToSpoke1 './modules/peering.bicep' = {
     peeringName: 'peer-hub-to-spoke01'
      allowGatewayTransit: true
   }
+  dependsOn: [hubVpnGateway]
 }
 //peering for hubTospoke2
 module hubToSpoke2 './modules/peering.bicep' = {
@@ -91,6 +105,20 @@ module hubFirewall './modules/firewall.bicep' = {
     vnetName: 'vnet-hub-prod-01'
     vnetResourceGroup: rgHub.name
     minecraftVmPrivateIp: '10.31.0.4'
+  }
+  dependsOn: [hubVnet]
+}
+
+// VPN Gateway
+module hubVpnGateway './modules/vpngateway.bicep' = {
+  name: 'hubVpnGatewayDeployment'
+  scope: resourceGroup(rgHub.name)
+  params: {
+    gatewayName: 'vpngw-hub-prod-01'
+    publicIpName: 'pip-vpngw-hub-prod-01'
+    vnetName: 'vnet-hub-prod-01'
+    vnetResourceGroup: rgHub.name
+    tenantId: '362843e2-ccd8-43aa-bacf-4e81d4b02c4d'
   }
   dependsOn: [hubVnet]
 }
@@ -154,7 +182,7 @@ module Spoke1toHub './modules/peering.bicep' = {
     peeringName: 'peer-spoke01-to-hub'
     useRemoteGateways: true
   }
-  dependsOn: [hubToSpoke1]
+  dependsOn: [hubToSpoke1, hubVpnGateway]
 }
 
 
@@ -185,7 +213,7 @@ module spoke2toHub './modules/peering.bicep' = {
     peeringName: 'peer-spoke02-to-hub'
     useRemoteGateways: true      
   }
-  dependsOn: [hubToSpoke2]
+  dependsOn: [hubToSpoke2, hubVpnGateway]
 }
 
 

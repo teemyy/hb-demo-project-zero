@@ -6,7 +6,7 @@ resource routeTable 'Microsoft.Network/routeTables@2024-01-01' = {
   name: routeTableName
   location: location
   properties: {
-    disableBgpRoutePropagation: true  // ← prevents VPN gateway routes
+    disableBgpRoutePropagation: false  // ← prevents VPN gateway routes
                                       //   overriding our custom routes
     routes: [
       {
