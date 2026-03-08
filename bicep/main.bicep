@@ -31,7 +31,6 @@ module gatewayRouteTable './modules/udr-vpngw.bicep' = {
     routeTableName: 'rt-hub-gateway-prod-01'
     firewallPrivateIp: '10.30.1.4'
   }
-  dependsOn: [rgHub]
 }
 
 //module for hub vnet
@@ -61,9 +60,9 @@ module hubVnet './modules/vnet.bicep' = {
     addressPrefix: '10.30.3.0/26'
      }
      
-   ]} 
-   dependsOn: [gatewayRouteTable]
-  }
+   ]
+  } 
+}
   
 
 
@@ -95,7 +94,7 @@ module hubToSpoke2 './modules/peering.bicep' = {
 
 }
 
-module hubFirewall './modules/firewall.bicep' = {
+/*module hubFirewall './modules/firewall.bicep' = {
   name: 'hubFirewallDeployment'
   scope: resourceGroup(rgHub.name)
   params: {
@@ -108,6 +107,7 @@ module hubFirewall './modules/firewall.bicep' = {
   }
   dependsOn: [hubVnet]
 }
+*/
 
 // VPN Gateway
 module hubVpnGateway './modules/vpngateway.bicep' = {
@@ -138,7 +138,7 @@ module spoke1RouteTable './modules/udr.bicep' = {
   scope: resourceGroup(rgSpoke1.name)
   params: {
     routeTableName: 'rt-spoke-prod-01'
-    firewallPrivateIp: hubFirewall.outputs.firewallPrivateIp
+    firewallPrivateIp: '10.30.1.4'
   }
 }
 
@@ -216,4 +216,15 @@ module spoke2toHub './modules/peering.bicep' = {
   dependsOn: [hubToSpoke2, hubVpnGateway]
 }
 
+//vm for spoke2
+module spoke2VM './modules/vm.bicep' = {
+  name: 'spoke2VMDeployment'
+  scope: resourceGroup(rgSpoke2.name)
+  params: {
+    vmName: 'vm-spoke2-prod-02'
+    subnetId: spokeVnet1.outputs.subnetRefs[0].id 
+    adminUsername: 'azureuser'
+    adminPassword: adminPassword
+  }
+}
 
