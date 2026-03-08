@@ -15,6 +15,7 @@ resource vpnGateway 'Microsoft.Network/virtualNetworkGateways@2024-01-01' = {
   name: gatewayName
   location: location
   properties: {
+    enablePrivateIpAddress: true
     sku: { name: 'VpnGw1AZ', tier: 'VpnGw1AZ' }
     gatewayType: 'Vpn'
     vpnType: 'RouteBased'
