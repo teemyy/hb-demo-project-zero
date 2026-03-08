@@ -19,7 +19,7 @@ resource vpnGateway 'Microsoft.Network/virtualNetworkGateways@2024-01-01' = {
     sku: { name: 'VpnGw1AZ', tier: 'VpnGw1AZ' }
     gatewayType: 'Vpn'
     vpnType: 'RouteBased'
-    enableBgp: false
+    enableBgp: true
     ipConfigurations: [
       {
         name: 'default'
