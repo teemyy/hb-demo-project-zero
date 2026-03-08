@@ -23,29 +23,17 @@ resource rgSpoke2 'Microsoft.Resources/resourceGroups@2023-07-01' = {
   location: location
 }
 
-// Gateway Route Table — must exist before hub VNet
-module gatewayRouteTable './modules/udr-vpngw.bicep' = {
-  name: 'gatewayRouteTableDeployment'
-  scope: resourceGroup(rgHub.name)
-  params: {
-    routeTableName: 'rt-hub-gateway-prod-01'
-    firewallPrivateIp: '10.30.1.4'
-  }
-}
-
-//module for hub vnet
+// Hub VNet — no route table on GatewaySubnet, BGP handles route propagation
 module hubVnet './modules/vnet.bicep' = {
   name: 'hubVnetDeployment1'
   scope: resourceGroup(rgHub.name)
   params: {
     vnetName: 'vnet-hub-prod-01'
     vnetAddressPrefix: '10.30.0.0/16'
-    
-     subnets: [
+    subnets: [
       {
         name: 'GatewaySubnet' // DO NOT CHANGE THIS NAME
         addressPrefix: '10.30.0.0/27'
-        routeTableId: gatewayRouteTable.outputs.routeTableId
       }
       {
         name: 'AzureFirewallSubnet'
@@ -194,6 +182,16 @@ module spoke2NSG './modules/nsg.bicep' = {
   }
 }
 
+// Route table for Spoke2
+module spoke2RouteTable './modules/udr.bicep' = {
+  name: 'spoke2RouteTableDeployment'
+  scope: resourceGroup(rgSpoke2.name)
+  params: {
+    routeTableName: 'rt-spoke-prod-02'
+    firewallPrivateIp: '10.30.1.4'
+  }
+}
+
 //module for spoke2 vnet
 module spokeVnet2 './modules/vnet.bicep' = {
   name: 'spokeVnetDeployment2'
@@ -206,6 +204,7 @@ module spokeVnet2 './modules/vnet.bicep' = {
       name: 'subnet-spoke-prod-02'
       addressPrefix: '10.32.0.0/24'
       nsgId: spoke2NSG.outputs.nsgId
+      routeTableId: spoke2RouteTable.outputs.routeTableId
     }
   ] 
   }
@@ -229,7 +228,7 @@ module spoke2VM './modules/vm.bicep' = {
   scope: resourceGroup(rgSpoke2.name)
   params: {
     vmName: 'vm-spoke2-prod-02'
-    subnetId: '/subscriptions/ff8de00d-5e23-498b-9ecf-03d4db265f5f/resourceGroups/rg-spoke-prod-02/providers/Microsoft.Network/virtualNetworks/vnet-spoke-prod-02/subnets/subnet-spoke-prod-02' 
+    subnetId: spokeVnet2.outputs.subnetRefs[0].id 
     adminUsername: 'azureuser'
     adminPassword: adminPassword
   }
